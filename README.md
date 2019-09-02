@@ -1,2 +1,2 @@
-# behavior-lib
-Contains logic used to do behavior analysis
+# behavior-trace-processing
+Contains logic used to process behavior traces
