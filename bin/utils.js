@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
-import { getTrace, getDistrib, getMultiDistrib, getPaths } from "../lib/makerequests";
-import { reformatFile, exportFile } from "../lib";
+import { getTrace, getDistrib, getMultiDistrib, getPaths } from "../src/makerequests";
+import { reformatFile, exportFile } from "../src";
 import { PassThrough } from "stream";
 // var makerequests = require('./dist/makerequests.pg.ts')
 var ArgumentParser = require('argparse').ArgumentParser;

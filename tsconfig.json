@@ -2,14 +2,16 @@
     "compilerOptions": {
         "baseUrl": ".",
         "module": "commonjs",
-        "target": "es2016",
-        "outDir": "./dist",
+        "target": "es6",
+        "outDir": "out",
         "declaration": true,
         "strict": true,
+		"sourceMap": true,
+		"rootDir": "src",
         "jsx": "preserve"
     },
     "exclude": [
-        "dist",
+        "out",
         "node_modules",
         "**/node_modules/*"
     ]

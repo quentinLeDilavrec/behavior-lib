@@ -2,12 +2,12 @@
   "name": "behaviour-client",
   "version": "1.0.0",
   "description": "allow to interact with database were logs are stored",
-  "main": "dist/lib/index.ts",
-  "types": "dist/lib/index.d.ts",
+  "main": "out/index.ts",
+  "types": "out/index.d.ts",
   "scripts": {
     "start": "npm run build && node out/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "compile": "tsc"
   },
   "author": "",
   "license": "ISC",
