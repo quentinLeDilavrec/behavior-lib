@@ -1,5 +1,5 @@
 {
-  "name": "behaviour-client",
+  "name": "behavior-trace-processing",
   "version": "1.0.0",
   "description": "allow to interact with database were logs are stored",
   "main": "out/index.ts",
