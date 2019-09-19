@@ -1,6 +1,6 @@
 import { NgramStats } from './behaviorTypes';
 import { BehaviorClient } from './behaviorClient';
-export declare class BehaviorDBClientPostgres implements BehaviorClient {
+export declare class BehaviorClientPostgres implements BehaviorClient {
     private pool;
     constructor(user: string, host: string, database: string, password: string, port: number);
     private req_as_object;

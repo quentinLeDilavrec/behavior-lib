@@ -1,5 +1,5 @@
 import { ClientConfig } from 'pg';
-export declare function generate_stack(config: ClientConfig, restart?: 'always', adminer_port?: number): string;
+export declare function generate_stack(config?: ClientConfig, restart?: 'always', adminer_port?: number): string;
 /**
  * Launch the database using docker-compose
  * @param stack_file the file containing the docker-compose stack

@@ -2,7 +2,7 @@
   "name": "behavior-trace-processing",
   "version": "1.0.0",
   "description": "allow to interact with database were logs are stored",
-  "main": "out/index.ts",
+  "main": "out/index.js",
   "types": "out/index.d.ts",
   "scripts": {
     "start": "npm run build && node out/index.js",
