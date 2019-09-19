@@ -2,7 +2,7 @@
 
 
 DROP FUNCTION public.getngrams; DROP FUNCTION public.compute2gram;
-DELETE FROM acctable;DELETE FROM grouptable;
+-- DELETE FROM acctable;DELETE FROM grouptable;
 CREATE OR REPLACE FUNCTION public.compute2gram(initPath text, sl int, sc int, el int, ec int)
  RETURNS void AS $BODY$
 #variable_conflict use_variable

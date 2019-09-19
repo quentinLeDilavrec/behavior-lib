@@ -2,7 +2,7 @@ import { Client, ClientConfig } from 'pg';
 import { readFileSync } from "fs";
 import { Readable } from 'stream';
 import { exec } from 'child_process';
-import {stringify} from 'yaml'
+import { stringify } from 'yaml'
 
 const default_config: ClientConfig = {
   user: 'ubehavior',
@@ -11,7 +11,8 @@ const default_config: ClientConfig = {
   password: 'password',
   port: 5432,
 }
-export function generate_stack(config: ClientConfig,
+export function generate_stack(
+  config: ClientConfig = default_config,
   restart: 'always' = 'always',
   adminer_port: number = 8080): string {
   const stack = {
