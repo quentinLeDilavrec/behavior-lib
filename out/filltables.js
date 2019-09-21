@@ -12,16 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pg_1 = require("pg");
 const pg_copy_streams_1 = require("pg-copy-streams");
 const fs = require("fs");
-const DEFAULT_CLIENT = new pg_1.Client({
-    user: 'ubehavior',
-    host: 'localhost',
-    database: 'behaviordb',
-    password: 'password',
-    port: 5432,
-});
-function exportFile(input, client = DEFAULT_CLIENT) {
+// const DEFAULT_CONFIG = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
+function exportFile(input, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const table = 'public.calls';
+        const client = new pg_1.Client(config);
         yield client.connect();
         const stream = client.query(pg_copy_streams_1.from(`
 COPY ${table} FROM STDIN
@@ -48,6 +49,14 @@ WITH (FORMAT csv,
 }
 exports.exportFile = exportFile;
 if (typeof require != 'undefined' && require.main == module) {
-    exportFile(process.argv[2]);
+    const DEFAULT_CONFIG = {
+        user: 'ubehavior',
+        host: 'localhost',
+        database: 'behaviordb',
+        password: 'password',
+        port: 5432,
+    };
+    console.log('use ', DEFAULT_CONFIG);
+    exportFile(process.argv[2], DEFAULT_CONFIG);
 }
 //# sourceMappingURL=filltables.js.map

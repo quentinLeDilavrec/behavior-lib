@@ -12,13 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pg_1 = require("pg");
 const fs = require("fs");
 const stream_1 = require("stream");
-const client = new pg_1.Client({
-    user: 'ubehavior',
-    host: 'localhost',
-    database: 'behaviordb',
-    password: 'password',
-    port: 5432,
-});
+// const DEFAULT_CONFIG = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
 // client.connect().then(
 // client.query('SELECT NOW()', (err, res) => {
 //   console.log(err, res)
@@ -84,9 +84,10 @@ function applyReq(req, init_params) {
  * @param {any[]} values like ['packages/hooks/src/createRunHook.js', 12, 0, 71, 1]
  * @param {Array<'prev'|'next'>} moves like ['prev','next','next','prev','prev']
  */
-function getPaths(keys, values, moves, particulars = []) {
+function getPaths(config, keys, values, moves, particulars = []) {
     return __awaiter(this, void 0, void 0, function* () {
         const reqinf = moves.reduce((acc, x, i) => move(x === 'p' ? 'prev' : x === 'n' ? 'next' : x, acc, i), genInitReq(keys, particulars));
+        const client = new pg_1.Client(config);
         yield client.connect();
         client.query(reqinf[0], values, function (err, _ok) {
             if (err)
@@ -109,7 +110,8 @@ const path_1 = require("path");
 //     // callback(null,chunk)
 //   }
 // });
-function req_as_object(req, params) {
+function req_as_object(config, req, params) {
+    const client = new pg_1.Client(config);
     const outStream = new stream_1.PassThrough();
     client.connect().then(() => {
         // JSONStream.stringify()
@@ -121,8 +123,9 @@ function req_as_object(req, params) {
         .catch(err => console.error('connection error', err.stack));
     return outStream;
 }
-function req_as_stream(req, params, serializer, flush) {
+function req_as_stream(config, req, params, serializer, flush) {
     const outStream = new stream_1.PassThrough();
+    const client = new pg_1.Client(config);
     client.connect().then(() => {
         const query = new QueryStream(req, params);
         const stream = client.query(query);
@@ -179,7 +182,7 @@ class DbPath {
     }
 }
 const posOrZero = (n) => n >= 0 ? n : 0;
-function getMultiDistrib(path = 'packages/block*/**/*', order = 'pocc', origin = 'gutenberg') {
+function getMultiDistrib(config, path = 'packages/block*/**/*', order = 'pocc', origin = 'gutenberg') {
     const group_columns = ['origin', 'path', 'sl', 'sc', 'el', 'ec'];
     const formatedPath = DbPath.prototype.from_unix(path);
     const f_s_p = formatedPath.first_star_pos();
@@ -203,12 +206,12 @@ ORDER BY ${order} DESC, ${order === 'pocc' ? 'tocc' : 'pocc'}
 ;
   `;
     console.error(req);
-    return req_as_stream(req, [origin], function mytransform(chunk, enc, cb) {
+    return req_as_stream(config, req, [origin], function mytransform(chunk, enc, cb) {
         cb(null, chunk.package + ' ' + chunk.fct + ' ' + chunk.pocc + ' ' + chunk.tocc + '\n');
     });
 }
 exports.getMultiDistrib = getMultiDistrib;
-function getDistrib(path = 'packages/block*/**/*', n = 1, size = 10000, order = 'pocc', origin = 'gutenberg') {
+function getDistrib(config, path = 'packages/block*/**/*', n = 1, size = 10000, order = 'pocc', origin = 'gutenberg') {
     const formatedPath = DbPath.prototype.from_unix(path);
     const group_columns = ['origin', 'path', 'sl', 'sc', 'el', 'ec'];
     const f_s_p = formatedPath.first_star_pos();
@@ -277,13 +280,13 @@ ORDER BY g.pocc DESC, g.tocc;
     }
     console.error(req);
     // req = 'select * from groupTable where origin=$1'
-    return req_as_stream(req, [origin], function mytransform(chunk /*{ pocc: string, tocc: string }*/, enc, cb) {
+    return req_as_stream(config, req, [origin], function mytransform(chunk /*{ pocc: string, tocc: string }*/, enc, cb) {
         // cb(null, chunk.pocc + ' ' + chunk.tocc + '\n')
         cb(null, chunk.package + ' ' + chunk.fct + ' ' + chunk.pocc + ' ' + chunk.tocc + '\n');
     });
 }
 exports.getDistrib = getDistrib;
-function getTrace(session, computation, origin = 'gutenberg') {
+function getTrace(config, session, computation, origin = 'gutenberg') {
     if (computation === 'mean_pos') {
         const req = `
 SELECT MIN(session) as minsession, median(line) as minline, AVG(line) as avgline
@@ -294,7 +297,7 @@ AND nlevel(path)>1
 GROUP BY session, path, sl, sc, el, ec
 ORDER BY minline, minsession;
   `;
-        return req_as_stream(req, session === undefined ? [origin] : [origin, session], function mytransform(chunk, enc, cb) {
+        return req_as_stream(config, req, session === undefined ? [origin] : [origin, session], function mytransform(chunk, enc, cb) {
             cb(null, chunk.avgline + '\n');
         });
     }
@@ -308,13 +311,20 @@ AND session > 0
 AND nlevel(path)>1
 ORDER BY session,line;
   `;
-        return req_as_stream(req, [origin], function mytransform(chunk, enc, cb) {
+        return req_as_stream(config, req, [origin], function mytransform(chunk, enc, cb) {
             cb(null, chunk.fct + ' ' + chunk.params + '\n');
         });
     }
 }
 exports.getTrace = getTrace;
 if (typeof require != 'undefined' && require.main == module) {
+    const DEFAULT_CONFIG = {
+        user: 'ubehavior',
+        host: 'localhost',
+        database: 'behaviordb',
+        password: 'password',
+        port: 5432,
+    };
     const out = process.argv.length < 3 ? process.stdout : fs.createWriteStream(process.argv[2]);
     // getDistrib()
     // getDistrib('packages/blocks/src/api/registration.js', 2)
@@ -331,7 +341,7 @@ if (typeof require != 'undefined' && require.main == module) {
     // getTrace(2)
     // getTrace(2,'mean_pos')
     // getMultiDistrib('packages/*/**/*')
-    getMultiDistrib('packages/core-data/src/**/*')
+    getMultiDistrib(DEFAULT_CONFIG, 'packages/core-data/src/**/*')
         // getMultiDistribRoot() // just noise
         .pipe(out);
     // console.log(formatPath('packages/block*/**/*'))

@@ -1,16 +1,16 @@
-import { Client } from 'pg';
+import { Client, ClientConfig } from 'pg';
 import { from as copyFrom } from "pg-copy-streams";
 import * as fs from "fs";
 import { PassThrough, Transform } from "stream";
 import { merge } from "event-stream";
 
-const client = new Client({
-  user: 'ubehavior',
-  host: 'localhost',
-  database: 'behaviordb',
-  password: 'password',
-  port: 5432,
-})
+// const DEFAULT_CONFIG = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
 // client.connect().then(
 
 // client.query('SELECT NOW()', (err, res) => {
@@ -85,9 +85,9 @@ function applyReq(req: string, init_params: string[]) {
  * @param {any[]} values like ['packages/hooks/src/createRunHook.js', 12, 0, 71, 1]
  * @param {Array<'prev'|'next'>} moves like ['prev','next','next','prev','prev']
  */
-export async function getPaths(keys: string[], values: any[], moves: ('prev' | 'p' | 'next' | 'n')[], particulars: string[]=[]) {
-  const reqinf = moves.reduce((acc, x, i) => move(x==='p'?'prev':x==='n'?'next':x, acc, i), genInitReq(keys, particulars));
-
+export async function getPaths(config: ClientConfig, keys: string[], values: any[], moves: ('prev' | 'p' | 'next' | 'n')[], particulars: string[] = []) {
+  const reqinf = moves.reduce((acc, x, i) => move(x === 'p' ? 'prev' : x === 'n' ? 'next' : x, acc, i), genInitReq(keys, particulars));
+  const client = new Client(config);
   await client.connect();
 
   client.query(reqinf[0], values, function (err, _ok) {
@@ -113,7 +113,8 @@ import { inspect } from 'util';
 //   }
 // });
 
-function req_as_object(req: string, params: any[]) {
+function req_as_object(config: ClientConfig, req: string, params: any[]) {
+  const client = new Client(config);
   const outStream = new PassThrough()
   client.connect().then(() => {
     // JSONStream.stringify()
@@ -128,8 +129,9 @@ function req_as_object(req: string, params: any[]) {
   return outStream
 }
 
-function req_as_stream(req: string, params: any[], serializer: through2.TransformFunction, flush?: through2.FlushCallback) {
+function req_as_stream(config: ClientConfig, req: string, params: any[], serializer: through2.TransformFunction, flush?: through2.FlushCallback) {
   const outStream = new PassThrough()
+  const client = new Client(config);
   client.connect().then(() => {
     const query = new QueryStream(req, params)
     const stream = client.query(query)
@@ -194,10 +196,9 @@ class DbPath {
   }
 }
 
-
 const posOrZero = (n: number) => n >= 0 ? n : 0
 
-export function getMultiDistrib(path = 'packages/block*/**/*', order = 'pocc', origin = 'gutenberg') {
+export function getMultiDistrib(config: ClientConfig, path = 'packages/block*/**/*', order = 'pocc', origin = 'gutenberg') {
   const group_columns = ['origin', 'path', 'sl', 'sc', 'el', 'ec']
   const formatedPath = DbPath.prototype.from_unix(path)
   const f_s_p = formatedPath.first_star_pos()
@@ -222,13 +223,13 @@ ORDER BY ${order} DESC, ${order === 'pocc' ? 'tocc' : 'pocc'}
   `
   console.error(req)
 
-  return req_as_stream(req, [origin],
+  return req_as_stream(config, req, [origin],
     function mytransform(chunk: { package: string, fct: string, pocc: string, tocc: string }, enc, cb) {
       cb(null, chunk.package + ' ' + chunk.fct + ' ' + chunk.pocc + ' ' + chunk.tocc + '\n')
     })
 }
 
-export function getDistrib(path = 'packages/block*/**/*', n = 1, size = 10000, order = 'pocc', origin = 'gutenberg') {
+export function getDistrib(config: ClientConfig, path = 'packages/block*/**/*', n = 1, size = 10000, order = 'pocc', origin = 'gutenberg') {
   const formatedPath = DbPath.prototype.from_unix(path)
   const group_columns = ['origin', 'path', 'sl', 'sc', 'el', 'ec']
   const f_s_p = formatedPath.first_star_pos()
@@ -296,7 +297,7 @@ ORDER BY g.pocc DESC, g.tocc;
   }
   console.error(req)
   // req = 'select * from groupTable where origin=$1'
-  return req_as_stream(req, [origin],
+  return req_as_stream(config, req, [origin],
     function mytransform(chunk: any/*{ pocc: string, tocc: string }*/, enc, cb) {
       // cb(null, chunk.pocc + ' ' + chunk.tocc + '\n')
       cb(null, chunk.package + ' ' + chunk.fct + ' ' + chunk.pocc + ' ' + chunk.tocc + '\n')
@@ -304,18 +305,18 @@ ORDER BY g.pocc DESC, g.tocc;
 }
 
 
-export function getTrace(session?: number, computation?:'mean_pos', origin = 'gutenberg') {
+export function getTrace(config: ClientConfig, session?: number, computation?: 'mean_pos', origin = 'gutenberg') {
   if (computation === 'mean_pos') {
     const req = `
 SELECT MIN(session) as minsession, median(line) as minline, AVG(line) as avgline
 FROM calls
-WHERE origin = $1 ${session===undefined?'':'AND session = S2'}
+WHERE origin = $1 ${session === undefined ? '' : 'AND session = S2'}
 AND session > 0
 AND nlevel(path)>1
 GROUP BY session, path, sl, sc, el, ec
 ORDER BY minline, minsession;
   `
-    return req_as_stream(req, session===undefined?[origin]:[origin,session],
+    return req_as_stream(config, req, session === undefined ? [origin] : [origin, session],
       function mytransform(chunk: any, enc, cb) {
         cb(null, chunk.avgline + '\n')
       })
@@ -329,7 +330,7 @@ AND session > 0
 AND nlevel(path)>1
 ORDER BY session,line;
   `
-    return req_as_stream(req, [origin],
+    return req_as_stream(config, req, [origin],
       function mytransform(chunk: { fct: string, params: string }, enc, cb) {
         cb(null, chunk.fct + ' ' + chunk.params + '\n')
       })
@@ -339,6 +340,13 @@ ORDER BY session,line;
 
 
 if (typeof require != 'undefined' && require.main == module) {
+  const DEFAULT_CONFIG = {
+    user: 'ubehavior',
+    host: 'localhost',
+    database: 'behaviordb',
+    password: 'password',
+    port: 5432,
+  }
   const out = process.argv.length < 3 ? process.stdout : fs.createWriteStream(process.argv[2])
   // getDistrib()
   // getDistrib('packages/blocks/src/api/registration.js', 2)
@@ -357,7 +365,7 @@ if (typeof require != 'undefined' && require.main == module) {
   // getTrace(2,'mean_pos')
 
   // getMultiDistrib('packages/*/**/*')
-  getMultiDistrib('packages/core-data/src/**/*')
+  getMultiDistrib(DEFAULT_CONFIG, 'packages/core-data/src/**/*')
     // getMultiDistribRoot() // just noise
     .pipe(out)
   // console.log(formatPath('packages/block*/**/*'))

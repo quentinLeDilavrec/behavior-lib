@@ -1,9 +1,18 @@
 #!/usr/bin/env node
 'use strict';
-import { getTrace, getDistrib, getMultiDistrib, getPaths } from "../src/makerequests";
-import { reformatFile, exportFile } from "../src";
+import { getTrace, getDistrib, getMultiDistrib, getPaths } from "../out";
+import { reformatFile, exportFile } from "../out";
 import { PassThrough } from "stream";
 // var makerequests = require('./dist/makerequests.pg.ts')
+
+const DEFAULT_CONFIG = {
+    user: 'ubehavior',
+    host: 'localhost',
+    database: 'behaviordb',
+    password: 'password',
+    port: 5432,
+}
+
 var ArgumentParser = require('argparse').ArgumentParser;
 var parser = new ArgumentParser({
     version: '0.0.1',
@@ -109,7 +118,7 @@ console.dir(args);
 
 if (args.subcommand_name === 'upload') {
     if (args.csv) {
-        exportFile(args.input[0])
+        exportFile(DEFAULT_CONFIG, args.input[0])
     } else {
         const inter = new PassThrough()
         reformatFile(args.input, inter, 1);
@@ -117,18 +126,18 @@ if (args.subcommand_name === 'upload') {
     }
 } else if (args.subcommand_name === 'trace') {
     if (args.min_pos) {
-        getTrace(args.session, "mean_pos", args.origin).pipe(process.stdout)
+        getTrace(DEFAULT_CONFIG, args.session, "mean_pos", args.origin).pipe(process.stdout)
     } else {
-        getTrace(args.session, undefined, args.origin).pipe(process.stdout)
+        getTrace(DEFAULT_CONFIG, args.session, undefined, args.origin).pipe(process.stdout)
     }
 } else if (args.subcommand_name === 'dist') {
     if (args.multi) {
-        getMultiDistrib('packages/*/**/*', args.order, args.origin).pipe(process.stdout)
+        getMultiDistrib(DEFAULT_CONFIG, 'packages/*/**/*', args.order, args.origin).pipe(process.stdout)
     } else {
-        getDistrib('packages/**/*', args.n).pipe(process.stdout)
+        getDistrib(DEFAULT_CONFIG, 'packages/**/*', args.n).pipe(process.stdout)
     }
 } else if (args.subcommand_name === 'explore') {
-    getPaths(['path', 'sl', 'sc', 'el', 'ec'], args.from.split(/:/g), args.moves)
+    getPaths(DEFAULT_CONFIG, ['path', 'sl', 'sc', 'el', 'ec'], args.from.split(/:/g), args.moves)
 } else {
 
 }

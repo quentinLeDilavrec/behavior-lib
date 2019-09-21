@@ -4,7 +4,7 @@ export declare type NgramStats = {
     pocc: number;
     tocc: number;
 };
-export interface BehaviorDBClient {
+export interface BehaviorClient {
     makeReq<T>(keys: string[], values: T[], n?: number): Promise<NgramStats[]>;
     getMostUsedFcts(min_size?: number, params?: boolean): Promise<{
         path: string;
@@ -14,7 +14,7 @@ export interface BehaviorDBClient {
         tocc: number;
     }[]>;
 }
-export declare class BehaviorDBClientPostgres implements BehaviorDBClient {
+export declare class BehaviorClientPostgres implements BehaviorClient {
     private pool;
     constructor(user: string, host: string, database: string, password: string, port: number);
     private req_as_object;

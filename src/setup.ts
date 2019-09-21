@@ -4,15 +4,15 @@ import { Readable } from 'stream';
 import { exec } from 'child_process';
 import { stringify } from 'yaml'
 
-const default_config: ClientConfig = {
-  user: 'ubehavior',
-  host: 'localhost',
-  database: 'behaviordb',
-  password: 'password',
-  port: 5432,
-}
+// const DEFAULT_CONFIG: ClientConfig = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
 export function generate_stack(
-  config: ClientConfig = default_config,
+  config: ClientConfig,
   restart: 'always' = 'always',
   adminer_port: number = 8080): string {
   const stack = {
@@ -66,7 +66,7 @@ export async function installFunctions(config: ClientConfig) {
   const client = new Client(config)
 
   await client.connect();
-  // TODO 42 regarder ce qu'il y a vraiment sur la bd
+
   client.query(readFileSync('../../sql/utils.sql', 'utf8'));
   client.query(readFileSync('../../sql/getngrams.sql', 'utf8'));
 
@@ -80,7 +80,7 @@ export async function installTables(config: ClientConfig) {
   const client = new Client(config)
 
   await client.connect();
-  // TODO 42 regarder ce qu'il y a vraiment sur la bd
+
   client.query(readFileSync('../../sql/createBehaviorDB.sql', 'utf8'));
 
   await client.end();

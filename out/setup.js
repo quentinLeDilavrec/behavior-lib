@@ -13,14 +13,14 @@ const pg_1 = require("pg");
 const fs_1 = require("fs");
 const child_process_1 = require("child_process");
 const yaml_1 = require("yaml");
-const default_config = {
-    user: 'ubehavior',
-    host: 'localhost',
-    database: 'behaviordb',
-    password: 'password',
-    port: 5432,
-};
-function generate_stack(config = default_config, restart = 'always', adminer_port = 8080) {
+// const DEFAULT_CONFIG: ClientConfig = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
+function generate_stack(config, restart = 'always', adminer_port = 8080) {
     const stack = {
         version: '3.1',
         services: {
@@ -66,7 +66,6 @@ function installFunctions(config) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        // TODO 42 regarder ce qu'il y a vraiment sur la bd
         client.query(fs_1.readFileSync('../../sql/utils.sql', 'utf8'));
         client.query(fs_1.readFileSync('../../sql/getngrams.sql', 'utf8'));
         yield client.end();
@@ -81,7 +80,6 @@ function installTables(config) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        // TODO 42 regarder ce qu'il y a vraiment sur la bd
         client.query(fs_1.readFileSync('../../sql/createBehaviorDB.sql', 'utf8'));
         yield client.end();
     });

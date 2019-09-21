@@ -1,4 +1,4 @@
 /// <reference types="node" />
-import { Client } from 'pg';
+import { ClientConfig } from 'pg';
 import { Readable } from 'stream';
-export declare function exportFile(input: string | Readable, client?: Client): Promise<void>;
+export declare function exportFile(input: string | Readable, config: ClientConfig): Promise<void>;

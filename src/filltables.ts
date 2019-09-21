@@ -1,18 +1,19 @@
-import { Client } from 'pg';
+import { Client, ClientConfig } from 'pg';
 import { from as copyFrom } from "pg-copy-streams";
 import * as fs from "fs";
 import { Readable } from 'stream';
 
-const DEFAULT_CLIENT = new Client({
-  user: 'ubehavior',
-  host: 'localhost',
-  database: 'behaviordb',
-  password: 'password',
-  port: 5432,
-})
+// const DEFAULT_CONFIG = {
+//   user: 'ubehavior',
+//   host: 'localhost',
+//   database: 'behaviordb',
+//   password: 'password',
+//   port: 5432,
+// }
 
-export async function exportFile(input: string | Readable, client: Client = DEFAULT_CLIENT) {
+export async function exportFile(input: string | Readable, config: ClientConfig) {
   const table = 'public.calls';
+  const client = new Client(config);
 
   await client.connect();
 
@@ -40,5 +41,13 @@ WITH (FORMAT csv,
 }
 
 if (typeof require != 'undefined' && require.main == module) {
-  exportFile(process.argv[2]);
+  const DEFAULT_CONFIG = {
+    user: 'ubehavior',
+    host: 'localhost',
+    database: 'behaviordb',
+    password: 'password',
+    port: 5432,
+  }
+  console.log('use ', DEFAULT_CONFIG)
+  exportFile(process.argv[2], DEFAULT_CONFIG);
 }
