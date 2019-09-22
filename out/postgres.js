@@ -54,7 +54,7 @@ class BehaviorClientPostgres {
     getFct(l, namespace) {
         return 'CONCAT(' + l.map(x => namespace ? namespace + '.' + x : x).join(",':',") + ')';
     }
-    makeReq(keys, values, n) {
+    makeReq(keys, values, origin = 'gutenberg', n) {
         return __awaiter(this, void 0, void 0, function* () {
             let req = '';
             if (n === undefined) {
@@ -62,9 +62,9 @@ class BehaviorClientPostgres {
 SELECT ARRAY_AGG(g.fct ORDER BY g.line) as ngram,MAX(g.pocc) as pocc, MAX(g.tocc) as tocc, MAX(shift) as shift
 FROM (
   SELECT ${this.getFct(keys)} as fct, g.pocc, g.tocc, c.line, g.hash, g.shift
-  FROM getngrams($1,$2,$3,$4,$5,100::smallint) as g,
+  FROM getngrams($2,$3,$4,$5,$6,100::smallint) as g,
         calls c
-  WHERE 'gutenberg' = c.origin
+  WHERE $1 = c.origin
   AND c.session = g.session
   AND line >= g.left
   AND line < g.left+g.n) g
@@ -79,17 +79,18 @@ SELECT ARRAY[${this.getFct(keys)}] as ngram,
 SUM((SIGN(session)>0)::int) as pocc,
 SUM((SIGN(session)<0)::int) as tocc
 FROM calls c
-WHERE 'gutenberg' = c.origin
+WHERE $1 = c.origin
 AND (
   ${values.filter((x, i) => i % 5 === 0)
-                    .map((x, i) => `(c.path <@ formatPath($${i * 5 + 1}) AND sl = $${i * 5 + 2} AND sc = $${i * 5 + 3} AND el = $${i * 5 + 4} AND ec = $${i * 5 + 5})`).join(' OR ')}
+                    .map((x, i) => `(c.path <@ formatPath($${i * 5 + 1 + 1}) AND sl = $${i * 5 + 2 + 1} AND sc = $${i * 5 + 3 + 1} AND el = $${i * 5 + 4 + 1} AND ec = $${i * 5 + 5 + 1})`)
+                    .join(' OR ')}
 )
 GROUP BY ${group_columns.join(', ')}
     `;
             }
             else {
                 if (n > 2) {
-                    const req = `SELECT continuecomputengram($1,$2,$3,$4,$5,True,True);`;
+                    const req = `SELECT continuecomputengram($1,$2,$3,$4,$5,True,True);`; // TODO should use origin
                     console.log('Doing a request: ', req, values);
                     yield this.req_as_object(req, values);
                     //       req += ` 
@@ -99,7 +100,7 @@ GROUP BY ${group_columns.join(', ')}
                     //     `; // !!! TODO change this, it seems to be lazy evaluated!!!
                 }
                 if (n === 2) {
-                    const req = `SELECT compute2gram($1,$2,$3,$4,$5);`;
+                    const req = `SELECT compute2gram($1,$2,$3,$4,$5);`; // TODO should use origin
                     console.log('Doing a request: ', req, values);
                     yield this.req_as_object(req, values);
                     //       req += ` 
@@ -114,7 +115,7 @@ FROM (
   SELECT ${this.getFct(keys)} as fct, g.pocc, g.tocc, c.line, g.hash, g.shift
   FROM getngrams($1,$2,$3,$4,$5,100::smallint) as g,
        calls c
-  WHERE 'gutenberg' = c.origin
+  WHERE $1 = c.origin
   AND c.session = g.session
   AND line >= g.left
   AND line < g.left+g.n) g
@@ -122,10 +123,10 @@ GROUP BY g.hash;
 `;
             }
             console.log('Doing a request: ', req, n, values);
-            return yield this.req_as_object(req, values);
+            return yield this.req_as_object(req, [origin, ...values]);
         });
     }
-    getMostUsedFcts(min_size = 0, params = false) {
+    getMostUsedFcts(origin = 'gutenberg', min_size = 0, params = false) {
         return __awaiter(this, void 0, void 0, function* () {
             let req = '';
             if (params) {
@@ -135,7 +136,7 @@ SELECT formatPath(path) as path, sl, sc, el, ec, params::text,
 SUM((SIGN(session)>0)::int) as pocc,
 SUM((SIGN(session)<0)::int) as tocc
 FROM calls c
-WHERE 'gutenberg' = c.origin
+WHERE $1 = c.origin
 GROUP BY ${group_columns.join(', ')}
     `;
                 // HAVING SUM((SIGN(session)<0)::int) * $1 < SUM((SIGN(session)>0)::int)
@@ -147,13 +148,13 @@ SELECT formatPath(path) as path, sl, sc, el, ec,
 SUM((SIGN(session)>0)::int) as pocc,
 SUM((SIGN(session)<0)::int) as tocc
 FROM calls c
-WHERE 'gutenberg' = c.origin
+WHERE $1 = c.origin
 GROUP BY ${group_columns.join(', ')}
   `;
                 // HAVING SUM((SIGN(session)<0)::int) * $1 < SUM((SIGN(session)>0)::int)
             }
             console.log('Doing a request: ', req, min_size);
-            return yield this.req_as_object(req, [ /*min_size*/]);
+            return yield this.req_as_object(req, [origin /*, min_size*/]);
         });
     }
 }

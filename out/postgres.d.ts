@@ -5,8 +5,8 @@ export declare class BehaviorClientPostgres implements BehaviorClient {
     constructor(user: string, host: string, database: string, password: string, port: number);
     private req_as_object;
     private getFct;
-    makeReq<T>(keys: string[], values: T[], n: number | undefined): Promise<NgramStats[]>;
-    getMostUsedFcts(min_size?: number, params?: boolean): Promise<{
+    makeReq<T>(keys: string[], values: T[], origin?: string, n?: number): Promise<NgramStats[]>;
+    getMostUsedFcts(origin?: string, min_size?: number, params?: boolean): Promise<{
         path: string;
         sl: number;
         sc: number;
