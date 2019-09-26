@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { Readable } from 'stream';
 import { exec } from 'child_process';
 import { stringify } from 'yaml'
+import { join } from 'path';
 
 // const DEFAULT_CONFIG: ClientConfig = {
 //   user: 'ubehavior',
@@ -67,8 +68,8 @@ export async function installFunctions(config: ClientConfig) {
 
   await client.connect();
 
-  client.query(readFileSync('../../sql/utils.sql', 'utf8'));
-  client.query(readFileSync('../../sql/getngrams.sql', 'utf8'));
+  await client.query(readFileSync(join(__dirname,'../sql/utils.sql'), 'utf8'));
+  await client.query(readFileSync(join(__dirname,'../sql/getngrams.sql'), 'utf8'));
 
   await client.end();
 }
@@ -81,7 +82,7 @@ export async function installTables(config: ClientConfig) {
 
   await client.connect();
 
-  client.query(readFileSync('../../sql/createBehaviorDB.sql', 'utf8'));
+  await client.query(readFileSync(join(__dirname,'../sql/createBehaviorDB.sql'), 'utf8'));
 
   await client.end();
 }

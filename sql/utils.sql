@@ -23,17 +23,3 @@ END;
 $BODY$
 LANGUAGE plpgsql
 IMMUTABLE;
-
-
--- Procedure to instanciate a 1-gram in accTable
--- Caution it shouldn't be used anymore (useless) because entirely computed from calls table and statics in groupTable
-INSERT INTO accTable (n, hash, session, "left", isLastPrev, ori)
-SELECT n, MD5(CONCAT(formatPath(c.path),c.sl,c.sc,c.el,c.ec)),
-        c.session, c.line, false, 0
-FROM CALLS c
-WHERE origin = c.origin
-AND path @> formatPath(initPath)
-AND sl = c.sl
-AND sc = c.sc
-AND el = c.el
-AND ec = c.ec;

@@ -1,4 +1,16 @@
 
+-- tests
+SELECT formatPath('packages/edit-post/src/store/test/selectors.js');
+DELETE FROM calls;
+INSERT INTO CALLS (origin, path, sl, sc, el, ec, session, line, params) VALUES
+('test1', formatPath('packages/edit-post/src/store/test/selectors.js'), 205, 40, 211, 3, -5375, 1, NULL),
+('test1', formatPath('packages/edit-post/src/store/selectors.js'), 111, 7, 113, 1, -5375, 2, '["[Object]", "post-status"]'),
+('test1', formatPath('packages/scripts/config/global-setup.js'), 70, 11, 76, 1, -5375, 3, NULL),
+('test1', 'packages.scripts.config.globalç1setupç0ts', 70, 11, 76, 1, -5377, 3, NULL),
+('test1', formatPath('packages/blocks/src/api/raw-handling/test/figure-content-reducer.js'), 35, 36, 40, 2, -5374, 1, NULL);
+SELECT formatPath(path) FROM calls;
+
+
 --SELECT compute2gram('packages/hooks/src/createRunHook.js',12,0,71,1);
 
 SELECT c.*, g.*
