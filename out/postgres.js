@@ -113,7 +113,7 @@ GROUP BY ${group_columns.join(', ')}
 SELECT ARRAY_AGG(g.fct ORDER BY g.line) as ngram,MAX(g.pocc) as pocc, MAX(g.tocc) as tocc, MAX(shift) as shift
 FROM (
   SELECT ${this.getFct(keys)} as fct, g.pocc, g.tocc, c.line, g.hash, g.shift
-  FROM getngrams($1,$2,$3,$4,$5,100::smallint) as g,
+  FROM getngrams($2,$3,$4,$5,$6,100::smallint) as g,
        calls c
   WHERE $1 = c.origin
   AND c.session = g.session
@@ -122,7 +122,7 @@ FROM (
 GROUP BY g.hash;
 `;
             }
-            console.log('Doing a request: ', req, n, values);
+            console.log('Doing a request: ', req, n, origin, values);
             return yield this.req_as_object(req, [origin, ...values]);
         });
     }

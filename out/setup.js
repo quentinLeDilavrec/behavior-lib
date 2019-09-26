@@ -13,6 +13,7 @@ const pg_1 = require("pg");
 const fs_1 = require("fs");
 const child_process_1 = require("child_process");
 const yaml_1 = require("yaml");
+const path_1 = require("path");
 // const DEFAULT_CONFIG: ClientConfig = {
 //   user: 'ubehavior',
 //   host: 'localhost',
@@ -66,8 +67,8 @@ function installFunctions(config) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        client.query(fs_1.readFileSync('../../sql/utils.sql', 'utf8'));
-        client.query(fs_1.readFileSync('../../sql/getngrams.sql', 'utf8'));
+        yield client.query(fs_1.readFileSync(path_1.join(__dirname, '../sql/utils.sql'), 'utf8'));
+        yield client.query(fs_1.readFileSync(path_1.join(__dirname, '../sql/getngrams.sql'), 'utf8'));
         yield client.end();
     });
 }
@@ -80,7 +81,7 @@ function installTables(config) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        client.query(fs_1.readFileSync('../../sql/createBehaviorDB.sql', 'utf8'));
+        yield client.query(fs_1.readFileSync(path_1.join(__dirname, '../sql/createBehaviorDB.sql'), 'utf8'));
         yield client.end();
     });
 }
