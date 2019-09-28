@@ -88,7 +88,7 @@ GROUP BY ${group_columns.join(', ')}
     `;
     } else {
       if (n > 2) {
-        const req = `SELECT continuecomputengram($1,$2,$3,$4,$5,True,True);`; // TODO should use origin
+        const req = `SELECT continuecomputengram($2,$3,$4,$5,$6,True,True);`; // TODO should use origin
         console.log('Doing a request: ', req, values);
         await this.req_as_object<NgramStats>(req, values);
         //       req += ` 
@@ -98,7 +98,7 @@ GROUP BY ${group_columns.join(', ')}
         //     `; // !!! TODO change this, it seems to be lazy evaluated!!!
       }
       if (n === 2) {
-        const req = `SELECT compute2gram($1,$2,$3,$4,$5);`; // TODO should use origin
+        const req = `SELECT compute2gram($2,$3,$4,$5,$6);`; // TODO should use origin
         console.log('Doing a request: ', req, values);
         await this.req_as_object<NgramStats>(req, values);
         //       req += ` 
