@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const pg_1 = require("pg");
-const behaviorClient_1 = require("./behaviorClient");
 class BehaviorClientPostgres {
     constructor(user, host, database, password, port) {
         this.pool = new pg_1.Pool({
@@ -20,10 +19,23 @@ class BehaviorClientPostgres {
             password: password,
             port: port,
             max: 30,
-        }).on('error', (err, client) => {
-            throw new behaviorClient_1.ConnectionProblem('Unexpected error on idle client', err, client);
-            // console.error('Unexpected error on idle client', err, client);
-            // process.exit(-1);
+        }).on('error', (error, client) => {
+            console.error('Unexpected error on idle client', error, client);
+            process.exit(-1);
+        });
+    }
+    testConnection() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const client = yield this.pool.connect();
+            try {
+                yield (client.query('select 1+1'));
+            }
+            catch (error) {
+                return error;
+            }
+            finally {
+                yield client.release();
+            }
         });
     }
     req_as_object(req, params) {
