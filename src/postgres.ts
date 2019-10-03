@@ -5,7 +5,7 @@ import { PassThrough, Transform } from "stream";
 import { merge } from "event-stream";
 import { resolve } from 'url';
 import { NgramStats } from './behaviorTypes';
-import { BehaviorClient, ConnectionProblem as ConnectionProblem } from './behaviorClient';
+import { BehaviorClient, ConnectionProblem } from './behaviorClient';
 
 
 export class BehaviorClientPostgres implements BehaviorClient {

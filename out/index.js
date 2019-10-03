@@ -48,5 +48,6 @@ __export(require("./formatting"));
 __export(require("./makerequests"));
 __export(require("./ngram"));
 __export(require("./setup"));
+__export(require("./behaviorClient"));
 __export(require("./postgres"));
 //# sourceMappingURL=index.js.map
