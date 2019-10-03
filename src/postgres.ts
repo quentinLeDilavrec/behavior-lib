@@ -5,7 +5,7 @@ import { PassThrough, Transform } from "stream";
 import { merge } from "event-stream";
 import { resolve } from 'url';
 import { NgramStats } from './behaviorTypes';
-import { BehaviorClient } from './behaviorClient';
+import { BehaviorClient, ConnectionProblem as ConnectionProblem } from './behaviorClient';
 
 
 export class BehaviorClientPostgres implements BehaviorClient {
@@ -22,8 +22,9 @@ export class BehaviorClientPostgres implements BehaviorClient {
         max: 30,
       }
     ).on('error', (err, client) => {
-      console.error('Unexpected error on idle client', err, client);
-      process.exit(-1);
+      throw new ConnectionProblem('Unexpected error on idle client', err, client)
+      // console.error('Unexpected error on idle client', err, client);
+      // process.exit(-1);
     });
   }
 
