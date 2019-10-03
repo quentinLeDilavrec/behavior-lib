@@ -21,11 +21,22 @@ export class BehaviorClientPostgres implements BehaviorClient {
         port: port,
         max: 30,
       }
-    ).on('error', (err, client) => {
-      throw new ConnectionProblem('Unexpected error on idle client', err, client)
+    ).on('error', (error, client) => {
+      throw new ConnectionProblem('Unexpected error on idle client', error, client);
       // console.error('Unexpected error on idle client', err, client);
       // process.exit(-1);
     });
+  }
+
+  public async testConnection(){
+    const client = await this.pool.connect();
+    try {
+      await(client.query('select 1+1'));
+    } catch (error) {
+      return error
+    } finally {
+      await client.release();
+    }
   }
 
   private async req_as_object<T>(req: string, params: any[]): Promise<T[]> {
@@ -56,7 +67,7 @@ export class BehaviorClientPostgres implements BehaviorClient {
   private getFct(l: any[], namespace?: string) {
     return 'CONCAT(' + l.map(x => namespace ? namespace + '.' + x : x).join(",':',") + ')';
   }
-  async makeReq<T>(keys: string[], values: T[], origin: string='gutenberg', n?: number) {
+  async makeReq<T>(keys: string[], values: T[], origin: string = 'gutenberg', n?: number) {
     let req = '';
     if (n === undefined) {
       req += `
@@ -123,10 +134,10 @@ GROUP BY g.hash;
     }
 
     console.log('Doing a request: ', req, n, origin, values);
-    return await this.req_as_object<NgramStats>(req, [origin,...values]);
+    return await this.req_as_object<NgramStats>(req, [origin, ...values]);
   }
 
-  async getMostUsedFcts(origin='gutenberg', min_size = 0, params = false) {// TODO remove default value
+  async getMostUsedFcts(origin = 'gutenberg', min_size = 0, params = false) {// TODO remove default value
     let req = '';
     if (params) {
       const group_columns = ['formatPath(path)', 'sl', 'sc', 'el', 'ec', "params::text"];
