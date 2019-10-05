@@ -27,16 +27,25 @@ export class BehaviorClientPostgres implements BehaviorClient {
     });
   }
 
-  public async testConnection(){
-    const client = await this.pool.connect();
+  public async testConnection(): Promise<Error | undefined> {
     try {
-      await(client.query('select 1+1'));
+      let error: Error | undefined = undefined;
+      const client = await this.pool.connect().catch(x => {error = x;});
+      if (typeof client === 'undefined') {
+        return error;
+      }
+      try {
+        await (client.query('select 1+1'));
+      } catch (error) {
+        return error;
+      } finally {
+        await client.release();
+      }
     } catch (error) {
-      return error
-    } finally {
-      await client.release();
+      return error;
     }
   }
+
 
   private async req_as_object<T>(req: string, params: any[]): Promise<T[]> {
     const client = await this.pool.connect();
