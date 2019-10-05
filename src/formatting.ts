@@ -37,7 +37,7 @@ function reformatLine(session: number) {
   }
 }
 
-export function reformatFile(inPath: string[] | string, output: string | Writable, getSession: number | ((i: number) => number), pattern?: RegExp) {
+export function reformatFileOld(inPath: string[] | string, output: string | Writable, getSession: number | ((i: number) => number), pattern?: RegExp) {
   let _getSession: ((i: number) => number);
   if (typeof getSession === 'number') {
     const base = getSession;
@@ -79,8 +79,28 @@ export function reformatFile(inPath: string[] | string, output: string | Writabl
   }
 }
 
+export function reformatFile(input: [string, number][]): Writable {
+  const output = new stream.PassThrough();
+  const writeStreams = input
+    .map(([p, session]) => {
+      const readStream = fs.createReadStream(p);
+      const writeStream = new stream.PassThrough();
+      readStream
+        .pipe(es.split())
+        .pipe(es.map(
+          reformatLine(session)))
+        .pipe(writeStream);
+      return writeStream
+    })
+  es.merge(writeStreams)
+    .pipe(es.join('\n'))
+    .pipe(output);
+  return output
+}
+
 if (typeof require != 'undefined' && require.main == module) {
-  reformatFile(process.argv.slice(2), 'output.csv', 4);
+  reformatFile(process.argv.slice(2).map((x,i)=>[x,i+4])).pipe(process.stdout)
+  // reformatFileOld(process.argv.slice(2), 'output.csv', 4);
   // reformatFile('/home/quentin/js_intercept_data/unit/v2/', 'output2.csv', -1, /^0\.[0-9]+$/);
   // reformatFile('/home/quentin/Documents/cours/M1/stage/ongit/start-instrumented-chrome/logs/', 'output.csv', 1, /^[0-9]+$/);
 
