@@ -51,3 +51,45 @@ if (typeof require != 'undefined' && require.main == module) {
   console.log('use ', DEFAULT_CONFIG)
   exportFile(process.argv[2], DEFAULT_CONFIG);
 }
+
+export async function getAlreadyUploaded(config: ClientConfig,origin:string) {
+  const client = new Client(config)
+
+  await client.connect();
+
+  await client.query(`
+  SELECT path FROM sessions
+  WHERE origin = $1
+  `,[origin]);
+
+  await client.end();
+  
+}
+
+export async function getUpperLower(config: ClientConfig,origin:string) {
+  const client = new Client(config)
+
+  await client.connect();
+
+  await client.query(`
+  SELECT MAX(session), MIN(session) FROM sessions
+  WHERE origin = $1
+  `,[origin]);
+
+  await client.end();
+  
+}
+
+export async function fillSessions(config: ClientConfig,origin:string) {
+  const client = new Client(config)
+
+  await client.connect();
+
+  await client.query(`
+  SELECT MAX(session), MIN(session) FROM sessions
+  WHERE origin = $1
+  `,[origin]);
+
+  await client.end();
+  
+}
