@@ -4,7 +4,7 @@ import * as es from "event-stream";
 import stream = require('stream');
 import { Writable } from "stream";
 
-function ltreeFormat(s: string): string {
+export function ltreeFormat(s: string): string {
   return s.replace(/\ç/g, 'çç').replace(/\-/g, 'ç1').replace(/\./g, 'ç0').replace(/\//g, '.')
 }
 
