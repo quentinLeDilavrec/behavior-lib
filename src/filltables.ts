@@ -59,12 +59,12 @@ export async function getAlreadyUploaded(config: ClientConfig, origin: string) {
   await client.connect();
 
   const res = (await client.query(`
-  SELECT path FROM sessions
+  SELECT formatPath(path) as path FROM sessions
   WHERE origin = $1
   `, [origin]));
 
   await client.end();
-  return res;
+  return res.rows;
 }
 
 export async function getUpperLower(config: ClientConfig, origin: string) {
@@ -73,12 +73,12 @@ export async function getUpperLower(config: ClientConfig, origin: string) {
   await client.connect();
 
   const res = (await client.query(`
-  SELECT MAX(session), MIN(session) FROM sessions
+  SELECT MAX(session) as upper, MIN(session) as lower FROM sessions
   WHERE origin = $1
   `, [origin]));
 
   await client.end();
-  return res;
+  return res.rows;
 }
 
 export async function fillSessions(config: ClientConfig, origin: string,entries:[string,number][]) {
