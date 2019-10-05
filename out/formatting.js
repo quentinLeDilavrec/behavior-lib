@@ -7,6 +7,7 @@ const stream = require("stream");
 function ltreeFormat(s) {
     return s.replace(/\ç/g, 'çç').replace(/\-/g, 'ç1').replace(/\./g, 'ç0').replace(/\//g, '.');
 }
+exports.ltreeFormat = ltreeFormat;
 function reformatLine(session) {
     return function (line, cb, idx) {
         if (idx === undefined)

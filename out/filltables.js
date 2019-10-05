@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pg_1 = require("pg");
 const pg_copy_streams_1 = require("pg-copy-streams");
 const fs = require("fs");
+const stream_1 = require("stream");
+const formatting_1 = require("./formatting");
 // const DEFAULT_CONFIG = {
 //   user: 'ubehavior',
 //   host: 'localhost',
@@ -63,11 +65,12 @@ function getAlreadyUploaded(config, origin) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        yield client.query(`
+        const res = (yield client.query(`
   SELECT path FROM sessions
   WHERE origin = $1
-  `, [origin]);
+  `, [origin]));
         yield client.end();
+        return res;
     });
 }
 exports.getAlreadyUploaded = getAlreadyUploaded;
@@ -75,23 +78,44 @@ function getUpperLower(config, origin) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = new pg_1.Client(config);
         yield client.connect();
-        yield client.query(`
+        const res = (yield client.query(`
   SELECT MAX(session), MIN(session) FROM sessions
   WHERE origin = $1
-  `, [origin]);
+  `, [origin]));
         yield client.end();
+        return res;
     });
 }
 exports.getUpperLower = getUpperLower;
-function fillSessions(config, origin) {
+function fillSessions(config, origin, entries) {
     return __awaiter(this, void 0, void 0, function* () {
+        const table = 'public.sessions';
         const client = new pg_1.Client(config);
         yield client.connect();
-        yield client.query(`
-  SELECT MAX(session), MIN(session) FROM sessions
-  WHERE origin = $1
-  `, [origin]);
-        yield client.end();
+        const stream = client.query(pg_copy_streams_1.from(`
+COPY ${table} FROM STDIN
+WITH (FORMAT csv,
+  QUOTE '"',
+  ESCAPE '\\',
+  NULL '\\N')
+  `));
+        const fileStream = new stream_1.PassThrough();
+        entries.forEach(([p, s]) => {
+            fileStream.push(formatting_1.ltreeFormat(p) + ',' + s + ',' + origin + '\n');
+        });
+        fileStream.on('error', (...x) => {
+            console.error(x);
+            client.end();
+        });
+        stream.on('error', x => {
+            console.error(x);
+            client.end();
+        });
+        stream.on('end', (...x) => {
+            console.log(x);
+            client.end();
+        });
+        fileStream.pipe(stream);
     });
 }
 exports.fillSessions = fillSessions;
