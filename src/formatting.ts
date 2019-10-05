@@ -79,7 +79,7 @@ export function reformatFileOld(inPath: string[] | string, output: string | Writ
   }
 }
 
-export function reformatFile(input: [string, number][]): Writable {
+export function reformatFile(input: [string, number][]): stream.Readable {
   const output = new stream.PassThrough();
   const writeStreams = input
     .map(([p, session]) => {
