@@ -66,11 +66,11 @@ function getAlreadyUploaded(config, origin) {
         const client = new pg_1.Client(config);
         yield client.connect();
         const res = (yield client.query(`
-  SELECT path FROM sessions
+  SELECT formatPath(path) as path FROM sessions
   WHERE origin = $1
   `, [origin]));
         yield client.end();
-        return res;
+        return res.rows;
     });
 }
 exports.getAlreadyUploaded = getAlreadyUploaded;
@@ -79,11 +79,11 @@ function getUpperLower(config, origin) {
         const client = new pg_1.Client(config);
         yield client.connect();
         const res = (yield client.query(`
-  SELECT MAX(session), MIN(session) FROM sessions
+  SELECT MAX(session) as upper, MIN(session) as lower FROM sessions
   WHERE origin = $1
   `, [origin]));
         yield client.end();
-        return res;
+        return res.rows;
     });
 }
 exports.getUpperLower = getUpperLower;
