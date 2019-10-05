@@ -59,4 +59,40 @@ if (typeof require != 'undefined' && require.main == module) {
     console.log('use ', DEFAULT_CONFIG);
     exportFile(process.argv[2], DEFAULT_CONFIG);
 }
+function getAlreadyUploaded(config, origin) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const client = new pg_1.Client(config);
+        yield client.connect();
+        yield client.query(`
+  SELECT path FROM sessions
+  WHERE origin = $1
+  `, [origin]);
+        yield client.end();
+    });
+}
+exports.getAlreadyUploaded = getAlreadyUploaded;
+function getUpperLower(config, origin) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const client = new pg_1.Client(config);
+        yield client.connect();
+        yield client.query(`
+  SELECT MAX(session), MIN(session) FROM sessions
+  WHERE origin = $1
+  `, [origin]);
+        yield client.end();
+    });
+}
+exports.getUpperLower = getUpperLower;
+function fillSessions(config, origin) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const client = new pg_1.Client(config);
+        yield client.connect();
+        yield client.query(`
+  SELECT MAX(session), MIN(session) FROM sessions
+  WHERE origin = $1
+  `, [origin]);
+        yield client.end();
+    });
+}
+exports.fillSessions = fillSessions;
 //# sourceMappingURL=filltables.js.map

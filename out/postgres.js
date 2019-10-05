@@ -26,15 +26,24 @@ class BehaviorClientPostgres {
     }
     testConnection() {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = yield this.pool.connect();
             try {
-                yield (client.query('select 1+1'));
+                let error = undefined;
+                const client = yield this.pool.connect().catch(x => { error = x; });
+                if (typeof client === 'undefined') {
+                    return error;
+                }
+                try {
+                    yield (client.query('select 1+1'));
+                }
+                catch (error) {
+                    return error;
+                }
+                finally {
+                    yield client.release();
+                }
             }
             catch (error) {
                 return error;
-            }
-            finally {
-                yield client.release();
             }
         });
     }

@@ -120,8 +120,7 @@ if (args.subcommand_name === 'upload') {
     if (args.csv) {
         exportFile(DEFAULT_CONFIG, args.input[0])
     } else {
-        const inter = new PassThrough()
-        reformatFile(args.input, inter, 1);
+        const inter = reformatFile(args.input.map((x,i)=>[x,i+1]));
         exportFile(inter)
     }
 } else if (args.subcommand_name === 'trace') {
