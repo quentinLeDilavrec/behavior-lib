@@ -154,7 +154,6 @@ DECLARE
   origin text;
 BEGIN
   origin:='gutenberg';
-  
   WITH g1 AS (
     SELECT g.*
     FROM groupTable g
@@ -213,31 +212,59 @@ BEGIN
   FROM a1 a
   WHERE NOT a.hash is NULL
   GROUP BY a.origin, a.hash
-  ON CONFLICT ON CONSTRAINT grouptable_pkey 
+  ON CONFLICT ON CONSTRAINT grouptable_pkey
   DO UPDATE SET pocc = excluded.pocc, tocc = excluded.tocc;
 
 END;
 $BODY$ LANGUAGE plpgsql;
 
--- features:
--- - previous initial symbol merging
--- - reapeting patterns merging
--- - incremental
--- - 
-CREATE OR REPLACE FUNCTION public.computengramsv2(initPath text, sl int, sc int, el int, ec int)
- RETURNS TABLE(n int, hash text, session int, left int, pocc bigint, tocc bigint, shift smallint) AS $BODY$
-#variable_conflict use_variable
-DECLARE
-  origin text;
-  checkpoint_n smallint;
-BEGIN
-  
-END;
-$BODY$ LANGUAGE plpgsql;
-  
--- my thing represent the behavior of the program across multiple executions
--- values are statics and exact
--- its use is mainly to descibe behaviors contained in traces
--- then it can be used to generate new tests that represent those behaviors
--- either fixing the important one in time
--- or crating a sligtly different test representing the good alternative to some behavior
+
+-- -- - previous initial symbol merging
+-- -- - reapeting patterns merging
+-- -- - incremental
+-- -- - use origin
+-- -- - process left and right moves separately
+-- -- - find the n and branches adapted to resume the computing
+-- CREATE OR REPLACE FUNCTION public.computengramsv2(origin text, initPath text, sl int, sc int, el int, ec int,go_prev boolean, go_next boolean)
+--  RETURNS TABLE(n int, hash text, session int, left int, pocc bigint, tocc bigint, shift smallint) AS $BODY$
+-- #variable_conflict use_variable
+-- DECLARE
+--   checkpoint_n smallint
+-- BEGIN
+--   WITH g1 AS (
+--   SELECT g.*
+--   FROM groupTable g
+--   WHERE origin = g.origin
+--   AND g.path @> formatPath(initPath)
+--   AND sl = g.sl
+--   AND sc = g.sc
+--   AND el = g.el
+--   AND ec = g.ec
+--   ), dir as (
+--   SELECT n-1 as n, MIN(shift)>0 as next, MAX(shift)<n-1 as prev
+--   FROM g1 as g
+--   GROUP BY n
+--   HAVING MIN(shift)>0 OR MAX(shift)<n-1
+--   UNION
+--   SELECT MAX(n) as n, true as next, true as prev FROM g1
+--   ),
+-- END;
+-- $BODY$ LANGUAGE plpgsql;
+
+-- -- my thing represent the behavior of the program across multiple executions
+-- -- values are exact (modulo hash of ngrams for now)
+-- -- its use is mainly to descibe behaviors contained in traces
+-- -- then it can be used to generate new tests that represent those behaviors
+-- -- either fixing the important one in time
+-- -- or crating a sligtly different test representing the good alternative to test some behavior
+
+
+-- -- process multiple starts at once, might be more efficient
+-- CREATE OR REPLACE FUNCTION public.computengramsv3(origin text,init  Table(initPath text, sl int, sc int, el int, ec int), go_prev boolean, go_next boolean)
+-- RETURNS TABLE(n int, hash text, session int, left int, pocc bigint, tocc bigint, shift smallint) AS $BODY$
+-- #variable_conflict use_variable
+-- DECLARE
+-- checkpoint_n smallint
+-- BEGIN
+-- END;
+-- $BODY$ LANGUAGE plpgsql;
