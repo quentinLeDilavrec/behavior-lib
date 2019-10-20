@@ -8,7 +8,7 @@ export function ltreeFormat(s: string): string {
   return s.replace(/\ç/g, 'çç').replace(/\-/g, 'ç1').replace(/\./g, 'ç0').replace(/\//g, '.')
 }
 
-function reformatLine(root:string, session: number) {
+function reformatLine(root: string, session: number) {
   return function (line: string, cb: (err?: string, data?: string) => void, idx: number) {
     if (idx === undefined) throw new Error('no idx, modify parameters given to mapper in map-stream module');
     if (line.trim().length === 0) {
@@ -20,15 +20,15 @@ function reformatLine(root:string, session: number) {
     // if (line.substr(0, tmp_replace_key.length) === tmp_replace_key) {
     //   line = line.substr(tmp_replace_key.length)
     // }
-    const first_space_idx = line.search(/[^\\] /)+1;//line.indexOf(' '); // TODO test if fix is working, in response to: fix it, because it fails at handling path containing backslash escaped spaces
+    const first_space_idx = line.search(/[^\\] /) + 1;//line.indexOf(' '); // TODO test if fix is working, in response to: fix it, because it fails at handling path containing backslash escaped spaces
     const first_dpoint_idx = line.indexOf(':');
-    if (first_space_idx === -1) {
-      cb(undefined, 
+    if (first_space_idx === 0) {
+      cb(undefined,
         root
         + ',' + ltreeFormat(line.substr(0, first_dpoint_idx))
         + ',' + line.substr(first_dpoint_idx + 1).replace(/:/g, ',') + ',' + session + ',' + idx + ',\\N');
     } else {
-      cb(undefined, 
+      cb(undefined,
         root
         + ',' + ltreeFormat(line.substr(0, first_dpoint_idx))
         + ',' + line.substr(first_dpoint_idx + 1, first_space_idx - first_dpoint_idx - 1).replace(/:/g, ',')
@@ -54,7 +54,7 @@ export function reformatFileOld(inPath: string[] | string, output: string | Writ
     const writeStream = typeof output === 'string' ? fs.createWriteStream(output) : output;
     readStream
       .pipe(es.split())
-      .pipe(es.map(reformatLine("gutenberg",_getSession(0))))
+      .pipe(es.map(reformatLine("gutenberg", _getSession(0))))
       .pipe(es.join('\n'))
       .pipe(writeStream);
   } else {
@@ -71,7 +71,7 @@ export function reformatFileOld(inPath: string[] | string, output: string | Writ
           readStream
             .pipe(es.split())
             .pipe(es.map(
-              reformatLine("gutenberg",_getSession(i))))
+              reformatLine("gutenberg", _getSession(i))))
             .pipe(writeStream);
           return writeStream
         })
@@ -82,7 +82,7 @@ export function reformatFileOld(inPath: string[] | string, output: string | Writ
   }
 }
 
-export function reformatFile(root:string, input: [string, number][]): stream.Readable {
+export function reformatFile(root: string, input: [string, number][]): stream.Readable {
   const output = new stream.PassThrough();
   const writeStreams = input
     .map(([p, session]) => {
@@ -91,7 +91,7 @@ export function reformatFile(root:string, input: [string, number][]): stream.Rea
       readStream
         .pipe(es.split())
         .pipe(es.map(
-          reformatLine(root,session)))
+          reformatLine(root, session)))
         .pipe(writeStream);
       return writeStream
     })
@@ -102,7 +102,7 @@ export function reformatFile(root:string, input: [string, number][]): stream.Rea
 }
 
 if (typeof require != 'undefined' && require.main == module) {
-  reformatFile("default",process.argv.slice(2).map((x,i)=>[x,i+4])).pipe(process.stdout)
+  reformatFile("default", process.argv.slice(2).map((x, i) => [x, i + 4])).pipe(process.stdout)
   // reformatFileOld(process.argv.slice(2), 'output.csv', 4);
   // reformatFile('/home/quentin/js_intercept_data/unit/v2/', 'output2.csv', -1, /^0\.[0-9]+$/);
   // reformatFile('/home/quentin/Documents/cours/M1/stage/ongit/start-instrumented-chrome/logs/', 'output.csv', 1, /^[0-9]+$/);
