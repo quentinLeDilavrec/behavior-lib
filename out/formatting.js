@@ -26,7 +26,7 @@ function reformatLine(root, session) {
         // }
         const first_space_idx = line.search(/[^\\] /) + 1; //line.indexOf(' '); // TODO test if fix is working, in response to: fix it, because it fails at handling path containing backslash escaped spaces
         const first_dpoint_idx = line.indexOf(':');
-        if (first_space_idx === -1) {
+        if (first_space_idx === 0) {
             cb(undefined, root
                 + ',' + ltreeFormat(line.substr(0, first_dpoint_idx))
                 + ',' + line.substr(first_dpoint_idx + 1).replace(/:/g, ',') + ',' + session + ',' + idx + ',\\N');

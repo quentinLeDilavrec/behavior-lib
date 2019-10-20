@@ -100,9 +100,6 @@ WITH (FORMAT csv,
   NULL '\\N')
   `));
         const fileStream = new stream_1.PassThrough();
-        entries.forEach(([p, s]) => {
-            fileStream.push(formatting_1.ltreeFormat(p) + ',' + s + ',' + origin + '\n');
-        });
         fileStream.on('error', (...x) => {
             console.error(x);
             client.end();
@@ -115,6 +112,10 @@ WITH (FORMAT csv,
             console.log(x);
             client.end();
         });
+        entries.forEach(([p, s]) => {
+            fileStream.push(formatting_1.ltreeFormat(p) + ',' + s + ',' + origin + '\n');
+        });
+        fileStream.end();
         fileStream.pipe(stream);
     });
 }
