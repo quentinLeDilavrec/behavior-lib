@@ -1,7 +1,7 @@
 import { Client, ClientConfig } from 'pg';
 import { from as copyFrom } from "pg-copy-streams";
 import * as fs from "fs";
-import { Readable,PassThrough } from 'stream';
+import { Readable, PassThrough } from 'stream';
 import { ltreeFormat } from './formatting';
 
 // const DEFAULT_CONFIG = {
@@ -81,7 +81,7 @@ export async function getUpperLower(config: ClientConfig, origin: string) {
   return res.rows;
 }
 
-export async function fillSessions(config: ClientConfig, origin: string,entries:[string,number][]) {
+export async function fillSessions(config: ClientConfig, origin: string, entries: [string, number][]) {
   const table = 'public.sessions';
   const client = new Client(config);
 
@@ -95,9 +95,6 @@ WITH (FORMAT csv,
   NULL '\\N')
   `));
   const fileStream = new PassThrough();
-  entries.forEach(([p,s])=>{
-    fileStream.push(ltreeFormat(p)+','+s+','+origin+'\n')
-  })
   fileStream.on('error', (...x) => {
     console.error(x)
     client.end()
@@ -110,5 +107,9 @@ WITH (FORMAT csv,
     console.log(x)
     client.end()
   });
+  entries.forEach(([p, s]) => {
+    fileStream.push(ltreeFormat(p) + ',' + s + ',' + origin + '\n')
+  })
+  fileStream.end();
   fileStream.pipe(stream)
 }
