@@ -274,7 +274,7 @@ WITH initPaths AS (
   ${initpath}
 )
 SELECT ${select_columns.map(x => x + ',').join(' ')} g.pocc, g.tocc
-FROM initPaths i, LATERAL getngrams(formatPath(i.path),i.sl,i.sc,i.el,i.ec,2::smallint) as g
+FROM initPaths i, LATERAL getngrams(${escape(origin)},formatPath(i.path),i.sl,i.sc,i.el,i.ec,2::smallint) as g
 ORDER BY g.pocc DESC, g.tocc;
     `;
     }
