@@ -82,7 +82,7 @@ export class BehaviorClientPostgres implements BehaviorClient {
 SELECT ARRAY_AGG(g.fct ORDER BY g.line) as ngram,MAX(g.pocc) as pocc, MAX(g.tocc) as tocc, MAX(shift) as shift
 FROM (
   SELECT ${this.getFct(keys)} as fct, g.pocc, g.tocc, c.line, g.hash, g.shift
-  FROM getngrams(${escape(origin)},$2,$3,$4,$5,$6,100::smallint) as g,
+  FROM getngrams($1,$2,$3,$4,$5,$6,100::smallint) as g,
         calls c
   WHERE $1 = c.origin
   AND c.session = g.session
@@ -108,9 +108,9 @@ GROUP BY ${group_columns.join(', ')}
     `;
     } else {
       if (n > 2) {
-        const req = `SELECT continuecomputengram($1,$2,$3,$4,$5,True,True);`; // TODO should use origin
+        const req = `SELECT continuecomputengram($1,$2,$3,$4,$5,$6,True,True);`; // TODO should use origin
         console.log('Doing a request: ', req, values);
-        await this.req_as_object<NgramStats>(req, values);
+        await this.req_as_object<NgramStats>(req, [origin,...values]);
         //       req += ` 
         // WITH x as (
         //   SELECT continuecomputengram($1,$2,$3,$4,$5,True,True)
@@ -118,9 +118,9 @@ GROUP BY ${group_columns.join(', ')}
         //     `; // !!! TODO change this, it seems to be lazy evaluated!!!
       }
       if (n === 2) {
-        const req = `SELECT compute2gram(${escape(origin)},$1,$2,$3,$4,$5);`; // TODO should use origin
+        const req = `SELECT compute2gram($1,$2,$3,$4,$5,$6);`; // TODO should use origin
         console.log('Doing a request: ', req, values);
-        await this.req_as_object<NgramStats>(req, values);
+        await this.req_as_object<NgramStats>(req, [origin, ...values]);
         //       req += ` 
         // WITH x as (
         //   SELECT continuecomputengram($1,$2,$3,$4,$5,True,True)
@@ -131,7 +131,7 @@ GROUP BY ${group_columns.join(', ')}
 SELECT ARRAY_AGG(g.fct ORDER BY g.line) as ngram,MAX(g.pocc) as pocc, MAX(g.tocc) as tocc, MAX(shift) as shift
 FROM (
   SELECT ${this.getFct(keys)} as fct, g.pocc, g.tocc, c.line, g.hash, g.shift
-  FROM getngrams(${escape(origin)},$2,$3,$4,$5,$6,100::smallint) as g,
+  FROM getngrams($1,$2,$3,$4,$5,$6,100::smallint) as g,
        calls c
   WHERE $1 = c.origin
   AND c.session = g.session
