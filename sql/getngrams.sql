@@ -3,13 +3,11 @@
 
 DROP FUNCTION public.getngrams; DROP FUNCTION public.compute2gram;
 -- DELETE FROM acctable;DELETE FROM grouptable;
-CREATE OR REPLACE FUNCTION public.compute2gram(initPath text, sl int, sc int, el int, ec int)
+CREATE OR REPLACE FUNCTION public.compute2gram(origin text,initPath text, sl int, sc int, el int, ec int)
  RETURNS void AS $BODY$
 #variable_conflict use_variable
 DECLARE
-  origin text;
 BEGIN
-  origin:='gutenberg';
 
   WITH a1 AS (
     -- get 1-grams of initPath:sl:sc:el:ec
@@ -76,14 +74,12 @@ END;
 $BODY$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION public.getngrams(initPath text, sl int, sc int, el int, ec int, max_n smallint)
+CREATE OR REPLACE FUNCTION public.getngrams(origin text, initPath text, sl int, sc int, el int, ec int, max_n smallint)
  RETURNS TABLE(n int, hash text, session int, left int, pocc bigint, tocc bigint, shift smallint) AS $BODY$
 #variable_conflict use_variable
 DECLARE
-  origin text;
   checkpoint_n smallint;
 BEGIN
-  origin:='gutenberg';
   -- checkpoint_n := (
   --   select MAX(g.n)
   --   from groupTable g
@@ -134,26 +130,23 @@ $BODY$ LANGUAGE plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION public.getngrams(initPath text, sl int, sc int, el int, ec int)
+CREATE OR REPLACE FUNCTION public.getngrams(origin text, initPath text, sl int, sc int, el int, ec int)
  RETURNS TABLE(n int, hash text, session int, left int, pocc bigint, tocc bigint, shift smallint) AS $BODY$
 #variable_conflict use_variable
 DECLARE
-  origin text;
   checkpoint_n smallint;
 BEGIN
    RETURN QUERY SELECT *
-   FROM getngrams(initPath, sl, sc, el, ec, 0::smallint);
+   FROM getngrams(origin, initPath, sl, sc, el, ec, 0::smallint);
 END;
 $BODY$ LANGUAGE plpgsql;
   
 
-CREATE OR REPLACE FUNCTION public.continuecomputengram(initPath text, sl int, sc int, el int, ec int,go_prev boolean, go_next boolean)
+CREATE OR REPLACE FUNCTION public.continuecomputengram(origin text, initPath text, sl int, sc int, el int, ec int,go_prev boolean, go_next boolean)
  RETURNS void AS $BODY$
 #variable_conflict use_variable
 DECLARE
-  origin text;
 BEGIN
-  origin:='gutenberg';
   WITH g1 AS (
     SELECT g.*
     FROM groupTable g
